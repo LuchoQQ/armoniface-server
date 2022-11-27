@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const connectDB = require("./libs/mongoose");
 require("dotenv").config();
 const app = express();
-
+const cors = require("cors");
 // db connection
 
 connectDB();
@@ -11,6 +11,8 @@ connectDB();
 // middlewares
 
 app.use(express.json());
+
+app.use(cors());
 
 app.use(morgan("dev"));
 
