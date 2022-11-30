@@ -4,10 +4,16 @@ const User = require("../models/User");
 
 const getAllUsersFromDB = async (req, res) => {
     try {
-        const users = await User.find();
-        res.status(200).json(users);
+        const users = await User.find().select({
+            name: 1,
+            email: 1,
+            role: 1,
+            avatar: 1,
+            createdAt: 1,
+        });
+        return res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -90,37 +96,7 @@ const validateUser = async (req, res) => {
     }
 };
 
-const getUserByToken = async (req, res, next) => {
-    const { authorization } = req.headers;
-    if (!authorization) {
-        return res.status(401).json({
-            status: "error",
-            message: "unauthorized",
-        });
-    }
-    const token = authorization.split(" ")[1];
-    try {
-        const payload = verifyToken(token);
-        const user = await User.findById(payload.id);
-        if (!user) {
-            return res.status(401).json({
-                status: "error",
-                message: "unauthorized",
-            });
-        }
-        req.user = user;
-        return res.status(200).json({
-            status: "ok",
-            user,
-            message: "user authorized",
-        });
-    } catch (error) {
-        res.status(401).json({
-            status: "error",
-            message: "unauthorized",
-        });
-    }
-};
+// create next function to validate admin
 
 module.exports = {
     getAllUsersFromDB,
@@ -128,5 +104,4 @@ module.exports = {
     getUserById,
     deleteUserFromDB,
     validateUser,
-    getUserByToken,
 };

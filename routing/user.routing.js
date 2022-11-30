@@ -5,7 +5,7 @@ const {
     getUserById,
     deleteUserFromDB,
     validateUser,
-    getUserByToken,
+    authAdmin,
 } = require("../controllers/user.controller");
 const router = express.Router();
 
@@ -19,6 +19,8 @@ router.delete("/:id", deleteUserFromDB);
 
 router.post("/auth", validateUser);
 
-router.post('/me', getUserByToken);
+router.post("/admin", (req, res) => {
+    res.status(200).json({ auth: true });
+});
 
 module.exports = router;
