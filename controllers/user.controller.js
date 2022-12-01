@@ -1,5 +1,4 @@
 const { hashPassword, comparePassword } = require("../libs/bcrypt");
-const { createToken, verifyToken } = require("../libs/jwt");
 const User = require("../models/User");
 
 const getAllUsersFromDB = async (req, res) => {
@@ -25,14 +24,17 @@ const createUser = async (req, res) => {
             email,
             password: await hashPassword(password),
         });
-        const token = createToken({ id: user._id });
-        res.status(201).json({
-            status: "ok",
-            message: "user created sucessfull",
-            token,
+        if (user === null) return res.status(404).json({ message: "user not found" });
+        return res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            createdAt: user.createdAt,
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -40,7 +42,7 @@ const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
         const user = await User.findById(id);
-        res.status(200).json(user);
+        return res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -80,7 +82,6 @@ const validateUser = async (req, res) => {
                 message: "invalid password",
             });
         }
-        const token = createToken({ id: user._id });
         res.status(200).json({
             status: "ok",
             id: user._id,
