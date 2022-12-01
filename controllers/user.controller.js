@@ -1,6 +1,6 @@
 const { hashPassword, comparePassword } = require("../libs/bcrypt");
 const User = require("../models/User");
-
+const Course = require("../models/Course");
 const getAllUsersFromDB = async (req, res) => {
     try {
         const users = await User.find().select({
@@ -24,7 +24,8 @@ const createUser = async (req, res) => {
             email,
             password: await hashPassword(password),
         });
-        if (user === null) return res.status(404).json({ message: "user not found" });
+        if (user === null)
+            return res.status(404).json({ message: "user not found" });
         return res.status(201).json({
             _id: user._id,
             name: user.name,
@@ -41,11 +42,48 @@ const createUser = async (req, res) => {
 const getUserById = async (req, res) => {
     const { id } = req.params;
     try {
-        const user = await User.findById(id);
+        const user = await User.findById(id).select({
+            name: 1,
+            email: 1,
+            role: 1,
+            avatar: 1,
+            createdAt: 1,
+            courses: 1,
+        });
         return res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+const getCoursesOfUserById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await User.findById(id).populate("courses");
+        return res.status(200).json(user.courses);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const deleteCourseFromUser = async (req, res) => {
+    const { id } = req.params;
+    const { courseId } = req.params;
+    res.json('hola')
+   /*  try {
+        const user = await User.findById(id);
+        if (user === null)
+            return res.status(404).json({ message: "user not found" });
+        const course = await Course.findById(courseId);
+        if (course === null)
+            return res.status(404).json({ message: "course not found" });
+
+        user.courses.pull(courseId);
+        await user.save();
+        return res.status(200).json({ message: "course deleted" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    } */
 };
 
 const deleteUserFromDB = async (req, res) => {
@@ -58,6 +96,27 @@ const deleteUserFromDB = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+const addCourseToUser = async (req, res) => {
+    const { id } = req.body;
+    const { course } = req.body;
+    try {
+        const courseId = await Course.findById(course);
+        const userId = await User.findById(id);
+
+        if (courseId === null) {
+            return res.status(404).json({ message: "course not found" });
+        }
+        if (userId === null) {
+            return res.status(404).json({ message: "user not found" });
+        }
+        userId.courses.push(courseId);
+        await userId.save();
+        return res.status(200).json(userId);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -105,4 +164,7 @@ module.exports = {
     getUserById,
     deleteUserFromDB,
     validateUser,
+    addCourseToUser,
+    getCoursesOfUserById,
+    deleteCourseFromUser,
 };

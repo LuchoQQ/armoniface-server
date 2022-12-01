@@ -11,6 +11,17 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get('/:id' , async (req, res) => {
+    const { id } = req.params;
+    try {
+        const course = await Course.findById(id);
+        return res.status(200).json(course);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+});
+
+
 router.post("/", async (req, res) => {
     const { title, url, description } = req.body;
     try {
